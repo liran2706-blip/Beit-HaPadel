@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
+  const next = searchParams.get('next') || '/';
 
   if (code) {
     const cookieStore = cookies();
@@ -23,36 +24,8 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { data } = await supabase.auth.exchangeCodeForSession(code);
-
-    // If new Google user, create profile
-    if (data?.user) {
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', data.user.id)
-        .maybeSingle();
-
-      if (!existingProfile) {
-        const fullName = data.user.user_metadata?.full_name || '';
-        const nameParts = fullName.split(' ');
-        const firstName = nameParts[0] || 'שחקן';
-        const lastName = nameParts.slice(1).join(' ') || '';
-
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          first_name: firstName,
-          last_name: lastName,
-          phone: '',
-          level: 3,
-          is_admin: false,
-        });
-
-        // New Google user — send to complete profile
-        return NextResponse.redirect(`${origin}/profile?new=1`);
-      }
-    }
+    await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(`${origin}/`);
+  return NextResponse.redirect(`${origin}${next}`);
 }

@@ -62,7 +62,7 @@ export default function TournamentPage() {
   }, [id]);
 
   async function handleRegister() {
-    if (!profile) { window.location.href = '/login'; return; }
+    if (!profile) { window.location.href = `/login?next=/tournament/${id}`; return; }
     if (!medicalApproved) { setError('יש לאשר את ההצהרה הרפואית'); return; }
     setRegistering(true);
     setError('');
