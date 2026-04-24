@@ -74,6 +74,14 @@ export default function AdminPage() {
     setRegistrations((prev) => prev.filter((r) => r.id !== regId));
   }
 
+  async function deleteTournament(id: string) {
+    if (!confirm('האם למחוק את הטורניר לחלוטין? פעולה זו תמחק גם את כל הנרשמים.')) return;
+    const supabase = createClient();
+    await supabase.from('tournaments').delete().eq('id', id);
+    setTournaments((prev) => prev.filter(t => t.id !== id));
+    if (selected === id) setSelected(null);
+  }
+
   function startEdit(t: typeof tournaments[0]) {
     setEditingTournament(t);
     setTitle(t.title);
@@ -258,12 +266,20 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-sm">{t.title}</p>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); startEdit(t); }}
-                      className={`text-xs px-2 py-0.5 rounded-lg transition-colors ${selected === t.id ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
-                    >
-                      עריכה
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); startEdit(t); }}
+                        className={`text-xs px-2 py-0.5 rounded-lg transition-colors ${selected === t.id ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+                      >
+                        עריכה
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteTournament(t.id); }}
+                        className="text-xs px-2 py-0.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
+                      >
+                        🗑
+                      </button>
+                    </div>
                   </div>
                   <p className={`text-xs mt-0.5 ${selected === t.id ? 'text-blue-200' : 'text-slate-400'}`}>
                     {new Date(t.date).toLocaleDateString('he-IL')}
