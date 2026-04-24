@@ -89,7 +89,7 @@ export default function TournamentList() {
             </div>
 
             {/* Tournament cards */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {group.map((t) => {
                 const available = t.max_players - t.approved_count;
                 const isFull = available <= 0;
@@ -102,7 +102,7 @@ export default function TournamentList() {
                     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
 
                       {/* Card header / image */}
-                      <div className="bg-gradient-to-br from-[#0a1628] to-[#1a3060] h-20 relative flex items-center justify-center overflow-hidden">
+                      <div className="bg-gradient-to-br from-[#0a1628] to-[#1a3060] h-16 relative flex items-center justify-center overflow-hidden">
                         {t.image_url ? (
                           <img src={t.image_url} alt={t.title} className="absolute inset-0 w-full h-full object-cover opacity-50" />
                         ) : (
@@ -127,7 +127,7 @@ export default function TournamentList() {
                       </div>
 
                       {/* Card body */}
-                      <div className="p-3">
+                      <div className="p-3 text-sm">
                         {/* Tags */}
                         <div className="flex items-center gap-1.5 flex-wrap mb-3">
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${LEVEL_COLORS[String(t.level_min)] ?? 'bg-slate-100 text-slate-600'}`}>
@@ -179,7 +179,7 @@ export default function TournamentList() {
                               ? 'bg-slate-100 text-slate-400'
                               : 'bg-blue-600 text-white group-hover:bg-blue-500 transition-colors'
                           }`}>
-                            {isFull ? 'מלא' : 'הרשמה עכשיו'}
+                            {isFull ? 'מלא' : 'הירשם עכשיו'}
                           </span>
                         </div>
                       </div>
