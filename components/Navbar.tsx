@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Profile } from '@/types';
@@ -35,7 +36,7 @@ export default function Navbar() {
         <Link href="/" className="font-black text-xl tracking-tight">
           <span className="text-white">בית</span>
           <span className="text-blue-400"> הפאדל</span>
-          <span className="mr-1">🇮🇱</span>
+          <Image src="/il.png" alt="ישראל" width={22} height={22} className="mr-1 inline-block" />
         </Link>
 
         <div className="flex items-center gap-3">
