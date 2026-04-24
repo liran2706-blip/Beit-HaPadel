@@ -35,6 +35,7 @@ export default function Navbar() {
         <Link href="/" className="font-black text-xl tracking-tight">
           <span className="text-white">בית</span>
           <span className="text-blue-400"> הפאדל</span>
+          <span className="mr-1">🇮🇱</span>
         </Link>
 
         <div className="flex items-center gap-3">
