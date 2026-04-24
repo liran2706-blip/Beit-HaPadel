@@ -1,0 +1,98 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
+import { TournamentWithCount, PLAYER_LEVELS } from '@/types';
+
+export default function TournamentList() {
+  const [tournaments, setTournaments] = useState<TournamentWithCount[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('tournaments')
+        .select('*')
+        .in('status', ['upcoming', 'active'])
+        .order('date', { ascending: true });
+
+      if (data) {
+        const enriched = await Promise.all(data.map(async (t: any) => {
+          const { count } = await supabase
+            .from('tournament_registrations')
+            .select('*', { count: 'exact', head: true })
+            .eq('tournament_id', t.id);
+          return { ...t, registration_count: count ?? 0 };
+        }));
+        setTournaments(enriched);
+      }
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  if (loading) return <p className="text-slate-400 text-center py-10">טוען...</p>;
+
+  if (tournaments.length === 0) {
+    return (
+      <div className="text-center py-16 text-slate-400">
+        <p className="text-4xl mb-3">🎾</p>
+        <p className="text-lg font-medium text-slate-600">אין טורנירים פעילים כרגע</p>
+        <p className="text-sm mt-1">בקרוב יפורסמו טורנירים חדשים</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {tournaments.map((t) => {
+        const available = t.max_players - t.registration_count;
+        const isFull = available <= 0;
+        const isLow = available > 0 && available <= 4;
+
+        return (
+          <Link key={t.id} href={`/tournament/${t.id}`}>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg leading-tight">{t.title}</h3>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    {new Date(t.date).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </p>
+                </div>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
+                  t.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {t.status === 'active' ? 'פעיל' : 'קרוב'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4 text-sm text-slate-600 mb-3">
+                <span>📍 {t.location}</span>
+                <span>⏰ {t.time_start}–{t.time_end}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
+                    רמה {t.level_min}–{t.level_max}
+                  </span>
+                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-lg font-semibold">
+                    ₪{t.price}
+                  </span>
+                </div>
+                <span className={`text-xs font-medium ${
+                  isFull ? 'text-red-500' : isLow ? 'text-orange-500' : 'text-slate-500'
+                }`}>
+                  {isFull ? 'מלא' : `${available} מקומות פנויים`}
+                </span>
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
