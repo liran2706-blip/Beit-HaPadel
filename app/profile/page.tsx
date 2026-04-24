@@ -43,7 +43,7 @@ export default function ProfilePage() {
 
       const { data: regs } = await supabase
         .from('tournament_registrations')
-        .select('*, tournament:tournaments(*)')
+        .select('*, tournament:tournament_id(id, title, date, location, status)')
         .eq('player_id', user.id)
         .order('created_at', { ascending: false });
 
