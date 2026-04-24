@@ -33,8 +33,8 @@ export default function Navbar() {
     <nav className="bg-[#0a1628] text-white px-4 py-3 sticky top-0 z-50">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <Link href="/" className="font-black text-xl tracking-tight">
-          <span className="text-white">ISRAEL</span>
-          <span className="text-blue-400"> PADEL</span>
+          <span className="text-white">בית</span>
+          <span className="text-blue-400"> הפאדל</span>
         </Link>
 
         <div className="flex items-center gap-3">
