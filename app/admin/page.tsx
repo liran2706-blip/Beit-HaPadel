@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [whatsappUrl, setWhatsappUrl] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   const [editingTournament, setEditingTournament] = useState<typeof tournaments[0] | null>(null);
 
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function AdminPage() {
     setMaxPlayers(t.max_players);
     setPayboxUrl(t.paybox_url || '');
     setWhatsappUrl(t.whatsapp_url || '');
+    setImageUrl((t as any).image_url || '');
     setDescription(t.description || '');
     setShowForm(true);
   }
@@ -110,6 +112,7 @@ export default function AdminPage() {
       price, max_players: maxPlayers,
       paybox_url: payboxUrl || null,
       whatsapp_url: whatsappUrl || null,
+      image_url: imageUrl || null,
       description: description || null,
     }).eq('id', editingTournament.id).select().single();
 
@@ -117,7 +120,7 @@ export default function AdminPage() {
       setTournaments((prev) => prev.map(t => t.id === data.id ? data : t));
       setEditingTournament(null);
       setShowForm(false);
-      setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setDescription('');
+      setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setImageUrl(''); setDescription('');
     }
     setSaving(false);
   }
@@ -132,6 +135,7 @@ export default function AdminPage() {
       price, max_players: maxPlayers,
       paybox_url: payboxUrl || null,
       whatsapp_url: whatsappUrl || null,
+      image_url: imageUrl || null,
       description: description || null,
       status: 'upcoming',
     }).select().single();
@@ -140,7 +144,7 @@ export default function AdminPage() {
       setTournaments((prev) => [data, ...prev]);
       setSelected(data.id);
       setShowForm(false);
-      setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setDescription('');
+      setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setImageUrl(''); setDescription('');
     }
     setSaving(false);
   }
@@ -163,7 +167,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-slate-900">ניהול טורנירים</h1>
           <button
-            onClick={() => { setShowForm(!showForm); setEditingTournament(null); setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setDescription(''); }}
+            onClick={() => { setShowForm(!showForm); setEditingTournament(null); setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setImageUrl(''); setDescription(''); }}
             className="bg-blue-700 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors"
           >
             {showForm ? 'ביטול' : '+ טורניר חדש'}
@@ -234,6 +238,14 @@ export default function AdminPage() {
                   <label className="block text-xs font-semibold text-slate-600 mb-1">קבוצת WhatsApp</label>
                   <input type="url" value={whatsappUrl} onChange={e => setWhatsappUrl(e.target.value)} placeholder="https://chat.whatsapp.com/..."
                     className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">תמונת טורניר (URL)</label>
+                  <input type="url" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..."
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr" />
+                  {imageUrl && (
+                    <img src={imageUrl} alt="preview" className="mt-2 w-full h-20 object-cover rounded-lg border border-slate-200" />
+                  )}
                 </div>
               </div>
               <div>

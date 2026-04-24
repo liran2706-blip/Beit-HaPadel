@@ -15,8 +15,8 @@ export default function HomePage() {
               src="/beit-hapadel.png"
               alt="בית הפאדל"
               width={1920}
-              height={800}
-              className="w-full object-cover"
+              height={500}
+              className="w-full object-cover max-h-56 md:max-h-72"
               priority
             />
           </div>

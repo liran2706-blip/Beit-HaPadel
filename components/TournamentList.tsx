@@ -101,11 +101,15 @@ export default function TournamentList() {
                   <Link key={t.id} href={`/tournament/${t.id}`}>
                     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
 
-                      {/* Card header / image placeholder */}
-                      <div className="bg-gradient-to-br from-[#0a1628] to-[#1a3060] h-28 relative flex items-center justify-center overflow-hidden">
-                        <div className="absolute inset-0 opacity-20 bg-[url('/beit-hapadel.png')] bg-cover bg-center" />
+                      {/* Card header / image */}
+                      <div className="bg-gradient-to-br from-[#0a1628] to-[#1a3060] h-20 relative flex items-center justify-center overflow-hidden">
+                        {t.image_url ? (
+                          <img src={t.image_url} alt={t.title} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                        ) : (
+                          <div className="absolute inset-0 opacity-20 bg-[url('/beit-hapadel.png')] bg-cover bg-center" />
+                        )}
                         <div className="relative text-center px-4">
-                          <p className="text-white font-black text-lg leading-tight group-hover:text-blue-300 transition-colors">
+                          <p className="text-white font-black text-base leading-tight group-hover:text-blue-300 transition-colors">
                             {t.title}
                           </p>
                         </div>
@@ -123,7 +127,7 @@ export default function TournamentList() {
                       </div>
 
                       {/* Card body */}
-                      <div className="p-4">
+                      <div className="p-3">
                         {/* Tags */}
                         <div className="flex items-center gap-1.5 flex-wrap mb-3">
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${LEVEL_COLORS[String(t.level_min)] ?? 'bg-slate-100 text-slate-600'}`}>
