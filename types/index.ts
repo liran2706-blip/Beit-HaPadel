@@ -26,6 +26,7 @@ export interface Tournament {
   price: number;
   max_players: number;
   paybox_url: string | null;
+  whatsapp_url: string | null;
   status: TournamentStatus;
   description: string | null;
   created_at: string;

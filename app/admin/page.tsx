@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [price, setPrice] = useState(0);
   const [maxPlayers, setMaxPlayers] = useState(20);
   const [payboxUrl, setPayboxUrl] = useState('');
+  const [whatsappUrl, setWhatsappUrl] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [editingTournament, setEditingTournament] = useState<typeof tournaments[0] | null>(null);
@@ -85,6 +86,7 @@ export default function AdminPage() {
     setPrice(t.price);
     setMaxPlayers(t.max_players);
     setPayboxUrl(t.paybox_url || '');
+    setWhatsappUrl(t.whatsapp_url || '');
     setDescription(t.description || '');
     setShowForm(true);
   }
@@ -99,6 +101,7 @@ export default function AdminPage() {
       location, level_min: levelMin, level_max: levelMax,
       price, max_players: maxPlayers,
       paybox_url: payboxUrl || null,
+      whatsapp_url: whatsappUrl || null,
       description: description || null,
     }).eq('id', editingTournament.id).select().single();
 
@@ -106,7 +109,7 @@ export default function AdminPage() {
       setTournaments((prev) => prev.map(t => t.id === data.id ? data : t));
       setEditingTournament(null);
       setShowForm(false);
-      setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setDescription('');
+      setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setDescription('');
     }
     setSaving(false);
   }
@@ -120,6 +123,7 @@ export default function AdminPage() {
       location, level_min: levelMin, level_max: levelMax,
       price, max_players: maxPlayers,
       paybox_url: payboxUrl || null,
+      whatsapp_url: whatsappUrl || null,
       description: description || null,
       status: 'upcoming',
     }).select().single();
@@ -128,7 +132,7 @@ export default function AdminPage() {
       setTournaments((prev) => [data, ...prev]);
       setSelected(data.id);
       setShowForm(false);
-      setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setDescription('');
+      setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setDescription('');
     }
     setSaving(false);
   }
@@ -151,7 +155,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-slate-900">ניהול טורנירים</h1>
           <button
-            onClick={() => { setShowForm(!showForm); setEditingTournament(null); setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setDescription(''); }}
+            onClick={() => { setShowForm(!showForm); setEditingTournament(null); setTitle(''); setDate(''); setLocation(''); setPayboxUrl(''); setWhatsappUrl(''); setDescription(''); }}
             className="bg-blue-700 hover:bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors"
           >
             {showForm ? 'ביטול' : '+ טורניר חדש'}
@@ -216,6 +220,11 @@ export default function AdminPage() {
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">קישור PayBox</label>
                   <input type="url" value={payboxUrl} onChange={e => setPayboxUrl(e.target.value)} placeholder="https://..."
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">קבוצת WhatsApp</label>
+                  <input type="url" value={whatsappUrl} onChange={e => setWhatsappUrl(e.target.value)} placeholder="https://chat.whatsapp.com/..."
                     className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr" />
                 </div>
               </div>
