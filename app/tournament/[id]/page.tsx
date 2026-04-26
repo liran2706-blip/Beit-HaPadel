@@ -110,6 +110,33 @@ export default function TournamentPage() {
     } else {
       setMyReg(data);
       setRegistrations((prev) => [...prev, data]);
+
+      // שליחת אימייל אישור הרשמה
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        await fetch('/api/send-registration-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: profile.first_name,
+            lastName: profile.last_name,
+            email: user?.email,
+            tournamentTitle: tournament?.title,
+            tournamentDate: new Date(tournament!.date).toLocaleDateString('he-IL', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            }),
+            tournamentLocation: tournament?.location,
+            tournamentPrice: tournament?.price,
+          }),
+        });
+      } catch (emailErr) {
+        // האימייל נכשל אבל ההרשמה הצליחה — לא מציגים שגיאה
+        console.error('Email send failed:', emailErr);
+      }
+
       if ((tournament as any)?.paybox_url) {
         window.location.href = (tournament as any).paybox_url;
       }

@@ -66,6 +66,49 @@ export default function AdminPage() {
     const supabase = createClient();
     await supabase.from('tournament_registrations').update({ status }).eq('id', regId);
     setRegistrations((prev) => prev.map((r) => r.id === regId ? { ...r, status } : r));
+
+    // שליחת אימייל רק כשמאשרים
+    if (status === 'approved') {
+      const reg = registrations.find((r) => r.id === regId);
+      const tournament = tournaments.find((t) => t.id === selected);
+      if (!reg || !tournament) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      // מושכים את האימייל של הנרשם
+      const { data: authUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', reg.profile.id)
+        .single();
+
+      // מושכים את האימייל דרך admin API
+      const { data: userData } = await (supabase as any).auth.admin?.getUserById(reg.profile.id) ?? {};
+
+      try {
+        await fetch('/api/send-approval-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: reg.profile.first_name,
+            lastName: reg.profile.last_name,
+            playerId: reg.profile.id,
+            tournamentTitle: tournament.title,
+            tournamentDate: new Date(tournament.date).toLocaleDateString('he-IL', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            }),
+            tournamentLocation: tournament.location,
+            tournamentPrice: tournament.price,
+            whatsappUrl: (tournament as any).whatsapp_url || null,
+            payboxUrl: tournament.paybox_url || null,
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to send approval email:', err);
+      }
+    }
   }
 
   async function deleteRegistration(regId: string) {
@@ -174,10 +217,9 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* Create tournament form */}
         {showForm && (
           <div className="bg-white border border-blue-200 rounded-2xl p-5 mb-6">
-            <h2 className="font-bold text-slate-800 mb-4">טורניר חדש</h2>
+            <h2 className="font-bold text-slate-800 mb-4">{editingTournament ? 'עריכת טורניר' : 'טורניר חדש'}</h2>
             <form onSubmit={editingTournament ? updateTournament : createTournament} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -262,7 +304,6 @@ export default function AdminPage() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Tournament list */}
           <div className="md:col-span-1">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">טורנירים</h2>
             <div className="space-y-2">
@@ -301,7 +342,6 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Registrations */}
           <div className="md:col-span-2">
             {selectedTournament && (
               <>
@@ -341,7 +381,7 @@ export default function AdminPage() {
                               onClick={() => updateStatus(reg.id, 'approved')}
                               className="bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
                             >
-                              אשר
+                              אשר ✉️
                             </button>
                             <button
                               onClick={() => updateStatus(reg.id, 'rejected')}
