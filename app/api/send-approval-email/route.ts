@@ -20,7 +20,6 @@ export async function POST(request: Request) {
       tournamentLocation,
       tournamentPrice,
       whatsappUrl,
-      payboxUrl,
     } = await request.json();
 
     const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserById(playerId);
@@ -98,17 +97,7 @@ export async function POST(request: Request) {
                         </tr>
                       </table>
 
-                      ${payboxUrl ? `
-                      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
-                        <tr>
-                          <td align="center">
-                            <a href="${payboxUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:16px;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;">
-                              💳 לתשלום דמי השתתפות
-                            </a>
-                          </td>
-                        </tr>
-                      </table>
-                      ` : ''}
+
 
                       ${whatsappUrl ? `
                       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
