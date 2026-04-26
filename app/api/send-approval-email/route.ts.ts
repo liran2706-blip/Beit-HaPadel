@@ -1,8 +1,13 @@
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: Request) {
   try {
@@ -18,18 +23,15 @@ export async function POST(request: Request) {
       payboxUrl,
     } = await request.json();
 
-    // מושכים את האימייל של השחקן מ-Supabase Auth
-    const supabase = createClient();
-    const { data: { user } } = await (supabase as any).auth.admin.getUserById(playerId);
-    const playerEmail = user?.email;
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserById(playerId);
 
-    if (!playerEmail) {
+    if (userError || !user?.email) {
       return NextResponse.json({ error: 'Email not found' }, { status: 404 });
     }
 
     const { error } = await resend.emails.send({
       from: 'בית הפאדל <noreply@israelpadel.com>',
-      to: playerEmail,
+      to: user.email,
       subject: `✅ הרשמתך אושרה — ${tournamentTitle}`,
       html: `
         <!DOCTYPE html>
@@ -44,7 +46,6 @@ export async function POST(request: Request) {
               <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;max-width:600px;width:100%;">
 
-                  <!-- Header -->
                   <tr>
                     <td style="background:#0a1628;padding:32px;text-align:center;">
                       <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:900;">
@@ -54,14 +55,12 @@ export async function POST(request: Request) {
                     </td>
                   </tr>
 
-                  <!-- Green success bar -->
                   <tr>
                     <td style="background:#16a34a;padding:14px;text-align:center;">
                       <p style="margin:0;color:#ffffff;font-size:18px;font-weight:700;">🎉 ההרשמה שלך אושרה!</p>
                     </td>
                   </tr>
 
-                  <!-- Body -->
                   <tr>
                     <td style="padding:32px;">
                       <p style="margin:0 0 8px;color:#1e293b;font-size:18px;font-weight:700;">שלום ${firstName} ${lastName},</p>
@@ -69,7 +68,6 @@ export async function POST(request: Request) {
                         שמחים לעדכן אותך שהרשמתך לטורניר <strong>${tournamentTitle}</strong> אושרה רשמית!
                       </p>
 
-                      <!-- Tournament details -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin-bottom:24px;">
                         <tr>
                           <td style="background:#0a1628;padding:12px 16px;">
@@ -101,7 +99,6 @@ export async function POST(request: Request) {
                       </table>
 
                       ${payboxUrl ? `
-                      <!-- PayBox button -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
                         <tr>
                           <td align="center">
@@ -114,7 +111,6 @@ export async function POST(request: Request) {
                       ` : ''}
 
                       ${whatsappUrl ? `
-                      <!-- WhatsApp button -->
                       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
                         <tr>
                           <td align="center">
@@ -126,13 +122,10 @@ export async function POST(request: Request) {
                       </table>
                       ` : ''}
 
-                      <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
-                        נתראה במגרש! 🏓
-                      </p>
+                      <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">נתראה במגרש! 🏓</p>
                     </td>
                   </tr>
 
-                  <!-- Footer -->
                   <tr>
                     <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px;text-align:center;">
                       <p style="margin:0;color:#94a3b8;font-size:12px;">© 2025 בית הפאדל · israelpadel.com</p>
