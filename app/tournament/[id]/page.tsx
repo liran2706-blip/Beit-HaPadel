@@ -426,9 +426,10 @@ export default function TournamentPage() {
                     <div className="divide-y divide-slate-100">
                       <div className="grid grid-cols-12 px-4 py-2 text-xs font-semibold text-slate-400">
                         <span className="col-span-1">#</span>
-                        <span className="col-span-5">שחקן</span>
+                        <span className="col-span-3">שחקן</span>
                         <span className="col-span-2 text-center">נצ׳</span>
-                        <span className="col-span-2 text-center">הפ׳</span>
+                        <span className="col-span-1 text-center">הפ׳</span>
+                        <span className="col-span-3 text-center">הפרש</span>
                         <span className="col-span-2 text-center">נק׳</span>
                       </div>
                       {players.map((player, i) => (
@@ -436,9 +437,12 @@ export default function TournamentPage() {
                           <span className={`col-span-1 font-black text-sm ${i === 0 ? 'text-yellow-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-orange-400' : 'text-slate-500'}`}>
                             {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                           </span>
-                          <span className="col-span-5 font-semibold text-slate-800 text-sm truncate">{player.name}</span>
+                          <span className="col-span-3 font-semibold text-slate-800 text-sm truncate">{player.name}</span>
                           <span className="col-span-2 text-center text-green-600 font-semibold text-sm">{player.wins}</span>
-                          <span className="col-span-2 text-center text-red-400 font-semibold text-sm">{player.losses}</span>
+                          <span className="col-span-1 text-center text-red-400 font-semibold text-sm">{player.losses}</span>
+                          <span className="col-span-3 text-center text-blue-400 font-semibold text-sm">
+                            {player.total_diff > 0 ? `${player.total_diff}+` : player.total_diff === 0 ? '0' : `${player.total_diff}`}
+                          </span>
                           <span className="col-span-2 text-center font-black text-blue-600 text-sm">{player.total_points}</span>
                         </div>
                       ))}
