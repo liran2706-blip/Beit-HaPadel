@@ -310,7 +310,7 @@ export default function TournamentPage() {
         <div className="flex border-b border-slate-200 mb-6">
           {([
             { key: 'overview', label: 'סקירה' },
-            { key: 'players', label: `שחקנים ${totalCount}` },
+            { key: 'players', label: `שחקנים ${approvedCount}` },
             { key: 'standings', label: 'תוצאות' },
           ] as { key: Tab; label: string }[]).map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
@@ -371,9 +371,9 @@ export default function TournamentPage() {
             )}
             <div className={!profile ? 'blur-sm pointer-events-none select-none' : ''}>
               <div className="space-y-2">
-                {registrations.length === 0 ? (
-                  <p className="text-center text-slate-400 py-10">אין נרשמים עדיין</p>
-                ) : registrations.map((reg, i) => (
+                {registrations.filter(r => r.status === 'approved').length === 0 ? (
+                  <p className="text-center text-slate-400 py-10">אין נרשמים מאושרים עדיין</p>
+                ) : registrations.filter(r => r.status === 'approved').map((reg, i) => (
                   <div key={reg.id} className="bg-white border border-slate-200 rounded-xl px-4 py-3 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0">
                       {reg.profile.first_name.charAt(0)}{reg.profile.last_name.charAt(0)}
