@@ -13,7 +13,25 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setReady(true);
+    const supabase = createClient();
+
+    // קרא token מה-URL hash
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token') || '';
+      if (accessToken) {
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+          .then(() => setReady(true));
+        return;
+      }
+    }
+
+    // אחרת בדוק session רגיל
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true);
+    });
   }, []);
 
   async function handleReset(e: React.FormEvent) {
