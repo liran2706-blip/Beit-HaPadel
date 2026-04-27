@@ -13,12 +13,7 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setReady(true);
-      }
-    });
+    setReady(true);
   }, []);
 
   async function handleReset(e: React.FormEvent) {
@@ -57,31 +52,26 @@ export default function ResetPasswordPage() {
               <p className="text-blue-300 text-sm mt-2">מעביר אותך לדף הבית...</p>
             </div>
           ) : !ready ? (
-            <div className="text-center">
+            <div className="text-center space-y-3">
               <p className="text-blue-300">טוען...</p>
-              <p className="text-blue-400 text-sm mt-2">אם הדף לא נטען, <Link href="/login" className="text-blue-300 underline">לחץ כאן לכניסה</Link></p>
+              <p className="text-blue-400 text-sm">אם הדף לא נטען תוך כמה שניות,{' '}
+                <Link href="/login" className="text-blue-300 underline">לחץ כאן לכניסה</Link>
+              </p>
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-4">
+              <p className="text-blue-300 text-sm mb-2">הזן סיסמה חדשה לחשבונך.</p>
               <div>
                 <label className="block text-sm font-semibold text-blue-300 mb-1.5">סיסמה חדשה</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="לפחות 6 תווים"
-                  dir="ltr"
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                  placeholder="לפחות 6 תווים" dir="ltr" required
                   className="w-full bg-blue-950 border border-blue-800 rounded-xl px-3 py-2.5 text-white placeholder-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-blue-300 mb-1.5">אימות סיסמה</label>
-                <input
-                  type="password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  placeholder="הזן שוב את הסיסמה"
-                  dir="ltr"
+                <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)}
+                  placeholder="הזן שוב את הסיסמה" dir="ltr" required
                   className="w-full bg-blue-950 border border-blue-800 rounded-xl px-3 py-2.5 text-white placeholder-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -90,9 +80,7 @@ export default function ResetPasswordPage() {
                 <p className="text-red-400 text-sm bg-red-900/20 border border-red-800 rounded-xl px-3 py-2">{error}</p>
               )}
 
-              <button
-                type="submit"
-                disabled={loading}
+              <button type="submit" disabled={loading}
                 className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-900 text-white font-bold py-3.5 rounded-xl text-lg transition-colors"
               >
                 {loading ? 'מעדכן...' : 'עדכן סיסמה'}
