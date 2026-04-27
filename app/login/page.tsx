@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -12,6 +12,10 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   async function handleGoogle() {
     const supabase = createClient();
@@ -35,6 +39,68 @@ function LoginForm() {
     } else {
       window.location.href = nextUrl;
     }
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotLoading(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    });
+    setForgotLoading(false);
+    if (error) {
+      setError('שגיאה: ' + error.message);
+    } else {
+      setForgotSent(true);
+    }
+  }
+
+  if (showForgot) {
+    return (
+      <div className="bg-[#0f2347] border border-blue-900 rounded-2xl p-6">
+        <button
+          onClick={() => { setShowForgot(false); setForgotSent(false); setError(''); }}
+          className="text-blue-400 hover:text-white text-sm mb-4 flex items-center gap-1"
+        >
+          ← חזור לכניסה
+        </button>
+        <h2 className="text-white font-bold text-lg mb-2">איפוס סיסמה</h2>
+        <p className="text-blue-300 text-sm mb-4">הכנס את כתובת האימייל שלך ונשלח לך קישור לאיפוס סיסמה.</p>
+
+        {forgotSent ? (
+          <div className="bg-green-900/30 border border-green-700 rounded-xl p-4 text-center">
+            <p className="text-green-400 font-semibold">✓ האימייל נשלח!</p>
+            <p className="text-green-300 text-sm mt-1">בדוק את תיבת הדואר שלך.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-blue-300 mb-1.5">אימייל</label>
+              <input
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                placeholder="your@email.com"
+                dir="ltr"
+                required
+                className="w-full bg-blue-950 border border-blue-800 rounded-xl px-3 py-2.5 text-white placeholder-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            {error && (
+              <p className="text-red-400 text-sm bg-red-900/20 border border-red-800 rounded-xl px-3 py-2">{error}</p>
+            )}
+            <button
+              type="submit"
+              disabled={forgotLoading}
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-900 text-white font-bold py-3.5 rounded-xl text-lg transition-colors"
+            >
+              {forgotLoading ? 'שולח...' : 'שלח קישור לאיפוס'}
+            </button>
+          </form>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -76,16 +142,23 @@ function LoginForm() {
             placeholder="••••••••" dir="ltr"
             className="w-full bg-blue-950 border border-blue-800 rounded-xl px-3 py-2.5 text-white placeholder-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          <button
+            type="button"
+            onClick={() => { setShowForgot(true); setForgotEmail(email); setError(''); }}
+            className="text-blue-400 hover:text-blue-300 text-xs mt-1.5 float-left transition-colors"
+          >
+            שכחתי סיסמה
+          </button>
         </div>
 
         {error && (
-          <p className="text-red-400 text-sm bg-red-900/20 border border-red-800 rounded-xl px-3 py-2">
+          <p className="text-red-400 text-sm bg-red-900/20 border border-red-800 rounded-xl px-3 py-2 clear-both">
             {error}
           </p>
         )}
 
         <button type="submit" disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-900 text-white font-bold py-3.5 rounded-xl text-lg transition-colors"
+          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-900 text-white font-bold py-3.5 rounded-xl text-lg transition-colors clear-both"
         >
           {loading ? 'מתחבר...' : 'כניסה'}
         </button>
