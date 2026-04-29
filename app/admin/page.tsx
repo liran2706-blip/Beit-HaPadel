@@ -93,10 +93,12 @@ export default function AdminPage() {
     const supabase = createClient();
     await supabase.from('tournament_registrations').update({ status }).eq('id', regId);
     setRegistrations((prev) => prev.map((r) => r.id === regId ? { ...r, status } : r));
+
+    const reg = registrations.find((r) => r.id === regId);
+    const tournament = tournaments.find((t) => t.id === selected);
+    if (!reg || !tournament) return;
+
     if (status === 'approved') {
-      const reg = registrations.find((r) => r.id === regId);
-      const tournament = tournaments.find((t) => t.id === selected);
-      if (!reg || !tournament) return;
       try {
         await fetch('/api/send-approval-email', {
           method: 'POST',
@@ -117,6 +119,28 @@ export default function AdminPage() {
         });
       } catch (err) {
         console.error('Failed to send approval email:', err);
+      }
+    }
+
+    if (status === 'rejected') {
+      try {
+        await fetch('/api/send-rejection-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: reg.profile.first_name,
+            lastName: reg.profile.last_name,
+            playerId: reg.profile.id,
+            tournamentTitle: tournament.title,
+            tournamentDate: new Date(tournament.date).toLocaleDateString('he-IL', {
+              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+            }),
+            tournamentLocation: tournament.location,
+            tournamentPrice: tournament.price,
+          }),
+        });
+      } catch (err) {
+        console.error('Failed to send rejection email:', err);
       }
     }
   }
