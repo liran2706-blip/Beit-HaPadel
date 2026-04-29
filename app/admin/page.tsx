@@ -38,7 +38,7 @@ export default function AdminPage() {
       const { data: p } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
       if (!p?.is_admin) { window.location.href = '/'; return; }
       setIsAdmin(true);
-      const { data: t } = await supabase.from('tournaments').select('*').order('date', { ascending: false });
+      const { data: t } = await supabase.from('tournaments').select('*').not('title', 'is', null).order('date', { ascending: false });
       setTournaments(t ?? []);
       if (t && t.length > 0) setSelected(t[0].id);
       setLoading(false);
@@ -205,6 +205,52 @@ export default function AdminPage() {
   const selectedTournament = tournaments.find(t => t.id === selected);
   const pending = registrations.filter(r => r.status === 'pending');
   const approved = registrations.filter(r => r.status === 'approved');
+  const rejected = registrations.filter(r => r.status === 'rejected');
+
+  const RegistrationCard = ({ reg }: { reg: RegistrationWithProfile }) => (
+    <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0">
+        {reg.profile.first_name.charAt(0)}{reg.profile.last_name.charAt(0)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-slate-800 text-sm">{reg.profile.first_name} {reg.profile.last_name}</p>
+        <p className="text-xs text-slate-400">{reg.profile.phone} · רמה {reg.profile.level}</p>
+      </div>
+      {reg.status === 'pending' ? (
+        <div className="flex gap-1.5 shrink-0">
+          <button onClick={() => updateStatus(reg.id, 'approved')}
+            className="bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
+            אשר ✉️
+          </button>
+          <button onClick={() => sendPaymentReminder(reg)} disabled={sendingReminder === reg.id}
+            className="bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+            {sendingReminder === reg.id ? '...' : '💳 תזכורת'}
+          </button>
+          <button onClick={() => updateStatus(reg.id, 'rejected')}
+            className="bg-red-100 hover:bg-red-200 text-red-600 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">דחה</button>
+          <button onClick={() => deleteRegistration(reg.id)}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">🗑</button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 shrink-0">
+          {reg.status === 'approved' && selectedTournament?.paybox_url && (
+            <a href={selectedTournament.paybox_url} target="_blank" rel="noopener noreferrer"
+              className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-0.5 rounded-lg transition-colors">PayBox</a>
+          )}
+          {reg.status === 'approved' && (
+            <button onClick={() => updateStatus(reg.id, 'rejected')}
+              className="text-xs bg-red-100 hover:bg-red-200 text-red-600 px-2 py-0.5 rounded-lg transition-colors">ביטול</button>
+          )}
+          {reg.status === 'rejected' && (
+            <button onClick={() => updateStatus(reg.id, 'approved')}
+              className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded-lg transition-colors">החזר</button>
+          )}
+          <button onClick={() => deleteRegistration(reg.id)}
+            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-500 px-2 py-0.5 rounded-lg transition-colors">🗑</button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -290,7 +336,7 @@ export default function AdminPage() {
           <div className="md:col-span-2">
             {selectedTournament && (
               <>
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-4">
                   <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">נרשמים — {selectedTournament.title}</h2>
                   <div className="flex gap-2 text-xs">
                     <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-lg font-semibold">ממתינים: {pending.length}</span>
@@ -301,55 +347,56 @@ export default function AdminPage() {
                 {registrations.length === 0 ? (
                   <p className="text-center text-slate-400 py-10">אין נרשמים עדיין</p>
                 ) : (
-                  <div className="space-y-2">
-                    {registrations.map((reg) => (
-                      <div key={reg.id} className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0">
-                          {reg.profile.first_name.charAt(0)}{reg.profile.last_name.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-slate-800 text-sm">{reg.profile.first_name} {reg.profile.last_name}</p>
-                          <p className="text-xs text-slate-400">{reg.profile.phone} · רמה {reg.profile.level}</p>
-                        </div>
+                  <div className="space-y-4">
 
-                        {reg.status === 'pending' ? (
-                          <div className="flex gap-1.5 shrink-0">
-                            <button onClick={() => updateStatus(reg.id, 'approved')}
-                              className="bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
-                              אשר ✉️
-                            </button>
-                            <button onClick={() => sendPaymentReminder(reg)} disabled={sendingReminder === reg.id}
-                              className="bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50">
-                              {sendingReminder === reg.id ? '...' : '💳 תזכורת'}
-                            </button>
-                            <button onClick={() => updateStatus(reg.id, 'rejected')}
-                              className="bg-red-100 hover:bg-red-200 text-red-600 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">דחה</button>
-                            <button onClick={() => deleteRegistration(reg.id)}
-                              className="bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">🗑</button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${reg.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                              {reg.status === 'approved' ? 'מאושר' : 'נדחה'}
-                            </span>
-                            {reg.status === 'approved' && selectedTournament.paybox_url && (
-                              <a href={selectedTournament.paybox_url} target="_blank" rel="noopener noreferrer"
-                                className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-0.5 rounded-lg transition-colors">PayBox</a>
-                            )}
-                            {reg.status === 'approved' && (
-                              <button onClick={() => updateStatus(reg.id, 'rejected')}
-                                className="text-xs bg-red-100 hover:bg-red-200 text-red-600 px-2 py-0.5 rounded-lg transition-colors">ביטול</button>
-                            )}
-                            {reg.status === 'rejected' && (
-                              <button onClick={() => updateStatus(reg.id, 'approved')}
-                                className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded-lg transition-colors">החזר</button>
-                            )}
-                            <button onClick={() => deleteRegistration(reg.id)}
-                              className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-500 px-2 py-0.5 rounded-lg transition-colors">🗑</button>
-                          </div>
-                        )}
+                    {/* ממתינים לאישור */}
+                    {pending.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-px flex-1 bg-yellow-200" />
+                          <span className="text-xs font-bold text-yellow-700 bg-yellow-100 px-3 py-1 rounded-full">
+                            ⏳ ממתינים לאישור ({pending.length})
+                          </span>
+                          <div className="h-px flex-1 bg-yellow-200" />
+                        </div>
+                        <div className="space-y-2">
+                          {pending.map((reg) => <RegistrationCard key={reg.id} reg={reg} />)}
+                        </div>
                       </div>
-                    ))}
+                    )}
+
+                    {/* מאושרים */}
+                    {approved.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-px flex-1 bg-green-200" />
+                          <span className="text-xs font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full">
+                            ✅ מאושרים ({approved.length})
+                          </span>
+                          <div className="h-px flex-1 bg-green-200" />
+                        </div>
+                        <div className="space-y-2">
+                          {approved.map((reg) => <RegistrationCard key={reg.id} reg={reg} />)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* נדחו */}
+                    {rejected.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-px flex-1 bg-red-200" />
+                          <span className="text-xs font-bold text-red-600 bg-red-100 px-3 py-1 rounded-full">
+                            ❌ נדחו ({rejected.length})
+                          </span>
+                          <div className="h-px flex-1 bg-red-200" />
+                        </div>
+                        <div className="space-y-2">
+                          {rejected.map((reg) => <RegistrationCard key={reg.id} reg={reg} />)}
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 )}
               </>
