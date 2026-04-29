@@ -168,19 +168,18 @@ export default function TournamentList() {
                           </div>
                         </div>
 
-                        {/* Footer — כפתור רחב עם מחיר ואייקון שחקנים */}
-                        <div className={`flex items-center justify-between px-4 py-3 rounded-xl ${
-                          isFull ? 'bg-slate-100' : 'bg-blue-600 group-hover:bg-blue-500 transition-colors'
-                        }`}>
-                          <span className={`font-bold text-sm flex items-center gap-1.5 ${isFull ? 'text-slate-400' : 'text-white'}`}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="opacity-90">
-                              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-                            </svg>
-                            {isFull ? 'מלא' : 'הירשם עכשיו'}
-                          </span>
-                          <span className={`text-lg font-black ${isFull ? 'text-slate-400' : 'text-white'}`}>
+                        {/* Footer */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xl font-black text-slate-800">
                             ₪{t.price}
-                            <span className={`text-xs font-normal mr-0.5 ${isFull ? 'text-slate-400' : 'text-blue-200'}`}>/ שחקן</span>
+                            <span className="text-xs text-slate-400 font-normal mr-1">/ שחקן</span>
+                          </span>
+                          <span className={`text-xs font-bold px-3 py-1.5 rounded-xl ${
+                            isFull
+                              ? 'bg-slate-100 text-slate-400'
+                              : 'bg-blue-600 text-white group-hover:bg-blue-500 transition-colors'
+                          }`}>
+                            {isFull ? 'מלא' : 'הירשם עכשיו'}
                           </span>
                         </div>
                       </div>
