@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Footer from '@/components/Footer';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'בית הפאדל',
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </div>
         <Footer />
+        <Script src="https://cdn.userway.org/widget.js" data-account="NpyHqVqD3F" strategy="afterInteractive" />
       </body>
     </html>
   );
