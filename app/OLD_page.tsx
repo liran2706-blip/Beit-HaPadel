@@ -16,7 +16,7 @@ export default function HomePage() {
               alt="בית הפאדל"
               width={1920}
               height={800}
-              className="w-full object-cover max-h-64 sm:max-h-80"
+              className="w-full object-cover"
               priority
             />
           </div>
