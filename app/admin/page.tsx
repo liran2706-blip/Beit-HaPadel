@@ -90,6 +90,8 @@ export default function AdminPage() {
       setSendingWaitlist(null);
     }
   }
+
+  async function sendPaymentReminder(reg: RegistrationWithProfile) {
     const tournament = tournaments.find((t) => t.id === selected);
     if (!tournament) return;
     setSendingReminder(reg.id);
