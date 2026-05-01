@@ -32,7 +32,7 @@ export interface Tournament {
   created_at: string;
 }
 
-export type RegistrationStatus = 'pending' | 'approved' | 'rejected' | 'waitlist';
+export type RegistrationStatus = 'pending' | 'approved' | 'rejected';
 
 export interface TournamentRegistration {
   id: string;
