@@ -246,7 +246,7 @@ export default function TournamentPage() {
             <div className="bg-white/10 rounded-full h-2.5 overflow-hidden">
               <div className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : isLow ? 'bg-orange-400' : 'bg-blue-400'}`} style={{ width: `${fillPercent}%` }} />
             </div>
-            <p className="text-right text-xs text-blue-500 mt-1">{approvedCount}/{maxPlayers} זוגות</p>
+            <p className="text-right text-xs text-blue-500 mt-1">{approvedCount}/{maxPlayers} שחקנים</p>
           </div>
 
           <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-2.5 mb-4">
