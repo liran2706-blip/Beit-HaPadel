@@ -60,7 +60,36 @@ export default function AdminPage() {
     loadRegs();
   }, [selected]);
 
-  async function sendPaymentReminder(reg: RegistrationWithProfile) {
+  const [sendingWaitlist, setSendingWaitlist] = useState<string | null>(null);
+
+  async function sendWaitlistEmail(reg: RegistrationWithProfile) {
+    const tournament = tournaments.find((t) => t.id === selected);
+    if (!tournament) return;
+    setSendingWaitlist(reg.id);
+    try {
+      await fetch('/api/send-waitlist-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: reg.profile.first_name,
+          lastName: reg.profile.last_name,
+          playerId: reg.profile.id,
+          tournamentTitle: tournament.title,
+          tournamentDate: new Date(tournament.date).toLocaleDateString('he-IL', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+          }),
+          tournamentLocation: tournament.location,
+          tournamentPrice: tournament.price,
+          payboxUrl: tournament.paybox_url || null,
+        }),
+      });
+      alert(`הודעה נשלחה ל-${reg.profile.first_name} ${reg.profile.last_name} ✓`);
+    } catch (err) {
+      alert('שגיאה בשליחת ההודעה');
+    } finally {
+      setSendingWaitlist(null);
+    }
+  }
     const tournament = tournaments.find((t) => t.id === selected);
     if (!tournament) return;
     setSendingReminder(reg.id);
@@ -230,6 +259,7 @@ export default function AdminPage() {
   const pending = registrations.filter(r => r.status === 'pending');
   const approved = registrations.filter(r => r.status === 'approved');
   const rejected = registrations.filter(r => r.status === 'rejected');
+  const waitlist = registrations.filter(r => r.status === 'waitlist');
 
   const RegistrationCard = ({ reg }: { reg: RegistrationWithProfile }) => (
     <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3">
@@ -365,6 +395,7 @@ export default function AdminPage() {
                   <div className="flex gap-2 text-xs">
                     <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-lg font-semibold">ממתינים: {pending.length}</span>
                     <span className="bg-green-100 text-green-700 px-2 py-1 rounded-lg font-semibold">מאושרים: {approved.length}</span>
+                    {waitlist.length > 0 && <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-lg font-semibold">המתנה: {waitlist.length}</span>}
                   </div>
                 </div>
 
@@ -417,6 +448,49 @@ export default function AdminPage() {
                         </div>
                         <div className="space-y-2">
                           {rejected.map((reg) => <RegistrationCard key={reg.id} reg={reg} />)}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* רשימת המתנה */}
+                    {waitlist.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-px flex-1 bg-purple-200" />
+                          <span className="text-xs font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">
+                            🕐 רשימת המתנה ({waitlist.length})
+                          </span>
+                          <div className="h-px flex-1 bg-purple-200" />
+                        </div>
+                        <div className="space-y-2">
+                          {waitlist.map((reg, i) => (
+                            <div key={reg.id} className="bg-white border border-purple-200 rounded-xl p-3 flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-sm shrink-0">
+                                {reg.profile.first_name.charAt(0)}{reg.profile.last_name.charAt(0)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-slate-800 text-sm">{reg.profile.first_name} {reg.profile.last_name}</p>
+                                <p className="text-xs text-slate-400">{reg.profile.phone} · רמה {reg.profile.level} · #{i + 1} בתור</p>
+                              </div>
+                              <div className="flex gap-1.5 shrink-0">
+                                <button
+                                  onClick={() => sendWaitlistEmail(reg)}
+                                  disabled={sendingWaitlist === reg.id}
+                                  className="bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                >
+                                  {sendingWaitlist === reg.id ? '...' : '📩 הודע'}
+                                </button>
+                                <button onClick={() => updateStatus(reg.id, 'approved')}
+                                  className="bg-green-100 hover:bg-green-200 text-green-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
+                                  אשר ✉️
+                                </button>
+                                <button onClick={() => deleteRegistration(reg.id)}
+                                  className="bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors">
+                                  🗑
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}

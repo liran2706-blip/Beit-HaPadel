@@ -12,12 +12,14 @@ const statusLabel: Record<string, string> = {
   pending: 'ממתין לאישור',
   approved: 'מאושר',
   rejected: 'נדחה',
+  waitlist: 'רשימת המתנה',
 };
 
 const statusColor: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700',
   approved: 'bg-green-100 text-green-700',
   rejected: 'bg-red-100 text-red-600',
+  waitlist: 'bg-purple-100 text-purple-700',
 };
 
 function Countdown({ date, time }: { date: string; time: string }) {
@@ -165,9 +167,10 @@ export default function TournamentPage() {
     setRegistering(true);
     setError('');
     const supabase = createClient();
+    const registrationStatus = isFull ? 'waitlist' : 'pending';
     const { data, error: regError } = await supabase
       .from('tournament_registrations')
-      .insert({ tournament_id: id, player_id: profile.id, status: 'pending' })
+      .insert({ tournament_id: id, player_id: profile.id, status: registrationStatus })
       .select('*, profile:profiles(*)')
       .single();
     if (regError) {
@@ -175,7 +178,7 @@ export default function TournamentPage() {
     } else {
       setMyReg(data);
       setRegistrations((prev) => [...prev, data]);
-      if ((tournament as any)?.paybox_url) {
+      if (!isFull && (tournament as any)?.paybox_url) {
         window.location.href = (tournament as any).paybox_url;
       }
     }
@@ -193,6 +196,7 @@ export default function TournamentPage() {
   const fillPercent = Math.min(100, Math.round((approvedCount / maxPlayers) * 100));
   const isLow = available > 0 && available <= 4;
   const isPast = new Date(tournament.date) < new Date();
+  const isOnWaitlist = myReg?.status === 'waitlist';
   const playerMap = Object.fromEntries(players.map(p => [p.id, p.name]));
 
   return (
@@ -246,7 +250,7 @@ export default function TournamentPage() {
             <div className="bg-white/10 rounded-full h-2.5 overflow-hidden">
               <div className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : isLow ? 'bg-orange-400' : 'bg-blue-400'}`} style={{ width: `${fillPercent}%` }} />
             </div>
-            <p className="text-right text-xs text-blue-500 mt-1">{approvedCount}/{maxPlayers} שחקנים</p>
+            <p className="text-right text-xs text-blue-500 mt-1">{approvedCount}/{maxPlayers} זוגות</p>
           </div>
 
           <div className="flex items-center justify-between bg-white/10 rounded-xl px-4 py-2.5 mb-4">
@@ -257,7 +261,44 @@ export default function TournamentPage() {
           {!myReg ? (
             <div className="space-y-3">
               {isFull ? (
-                <div className="bg-red-900/30 border border-red-500/30 text-red-300 rounded-xl p-3 text-center text-sm font-semibold">הטורניר מלא — כל המקומות תפוסים</div>
+                  <div className="space-y-3">
+                    <div className="bg-red-900/30 border border-red-500/30 text-red-300 rounded-xl p-3 text-center text-sm font-semibold">הטורניר מלא — כל המקומות תפוסים</div>
+                    {!isOnWaitlist && (
+                      <>
+                        <div className="border border-blue-700 rounded-xl overflow-hidden">
+                          <button type="button" onClick={() => setShowDeclaration(!showDeclaration)}
+                            className="w-full flex items-center justify-between px-4 py-3 bg-blue-900/40 text-blue-200 text-sm font-semibold">
+                            <span>הצהרה רפואית</span><span>{showDeclaration ? '▲' : '▼'}</span>
+                          </button>
+                          {showDeclaration && (
+                            <div className="px-4 py-3 text-blue-200 text-xs leading-relaxed space-y-1.5 max-h-44 overflow-y-auto bg-blue-950/40">
+                              <p className="font-semibold">אני החתום מטה מצהיר ומאשר בזאת כי:</p>
+                              <p>1. מצבי הבריאותי תקין, וכי אין לי כל מגבלה רפואית המונעת ממני להשתתף בפעילות ספורטיבית מסוג פאדל.</p>
+                              <p>2. אני מודע לכך שהשתתפות בפעילות ספורטיבית כרוכה במאמץ פיזי ובסיכונים מסוימים, לרבות פציעות, נפילות או פגיעות גוף שונות.</p>
+                              <p>3. אני לוקח על עצמי את מלוא האחריות להשתתפותי בטורניר, ומאשר כי ההשתתפות נעשית על אחריותי האישית בלבד.</p>
+                              <p>4. אני מתחייב להפסיק את הפעילות באופן מיידי במקרה של תחושת כאב, סחרחורת או כל סימפטום חריג אחר.</p>
+                              <p>5. אני מצהיר כי אין לי מחלה, פציעה או מצב רפואי אחר אשר עלול לסכן אותי או משתתפים אחרים במהלך הפעילות.</p>
+                              <p>6. ידוע לי כי מארגני הטורניר אינם אחראים לכל נזק, פציעה או אובדן שעלולים להיגרם לי במהלך ההשתתפות, למעט במקרה של רשלנות מוכחת על פי דין.</p>
+                              <p>7. אני מאשר כי האחריות לביטוח אישי, לרבות ביטוח תאונות אישיות, חלה עליי בלבד.</p>
+                            </div>
+                          )}
+                          <label className="flex items-center gap-3 px-4 py-3 cursor-pointer bg-blue-900/20">
+                            <input type="checkbox" checked={medicalApproved} onChange={(e) => setMedicalApproved(e.target.checked)} className="w-5 h-5 rounded accent-blue-500 cursor-pointer" />
+                            <span className="text-blue-200 text-sm">קראתי את ההצהרה הרפואית ואני מסכים לכל התנאים</span>
+                          </label>
+                        </div>
+                        <button onClick={handleRegister} disabled={registering || !medicalApproved}
+                          className="w-full bg-purple-600 hover:bg-purple-500 disabled:bg-purple-900 disabled:opacity-50 text-white font-bold py-4 rounded-xl text-lg transition-colors">
+                          {registering ? 'נרשם...' : '🕐 הצטרף לרשימת המתנה'}
+                        </button>
+                      </>
+                    )}
+                    {isOnWaitlist && (
+                      <div className="bg-purple-900/30 border border-purple-500/30 text-purple-300 rounded-xl p-3 text-center text-sm font-semibold">
+                        אתה ברשימת המתנה — נודיע לך אם יתפנה מקום 🕐
+                      </div>
+                    )}
+                  </div>
               ) : (
                 <>
                   <div className="border border-blue-700 rounded-xl overflow-hidden">
